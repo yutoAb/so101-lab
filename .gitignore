@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.python-version
+
+# 環境変数（ポート・HF トークン等を含む可能性）
+scripts/_env.sh
+
+# LeRobot / HuggingFace のローカルキャッシュ
+outputs/
+checkpoints/
+wandb/
+.cache/
+
+# 動画・データ（Hub に push 済みなのでローカルは不要）
+*.mp4
+*.mkv
+*.parquet
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+
+# キャリブレーションファイル（個体差を含むため共有しない）
+calibration/
+*.calib.json

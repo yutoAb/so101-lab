@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# scripts/_env.sh.example
+#
+# 使い方: このファイルを scripts/_env.sh にコピーして値を埋める。
+# scripts/_env.sh は .gitignore でコミット対象外にしている。
+#
+#   cp scripts/_env.sh.example scripts/_env.sh
+#   $EDITOR scripts/_env.sh
+
+# --- USB ポート（find-port.sh で確認した値）---
+# Mac:   /dev/tty.usbmodem... 形式
+# Linux: /dev/ttyACM0, /dev/ttyACM1 等
+export FOLLOWER_PORT="/dev/tty.usbmodemXXXXXXXXX"
+export LEADER_PORT="/dev/tty.usbmodemYYYYYYYYY"
+
+# --- ロボット ID（キャリブレーションファイルの保存名に使われる）---
+export FOLLOWER_ID="my_follower"
+export LEADER_ID="my_leader"
+
+# --- HuggingFace ユーザー名（hf auth whoami で確認）---
+export HF_USER="yutoabe"
+
+# --- カメラ設定 ---
+# Mac: index_or_path=0 から順に試す
+# Linux: /dev/video0 等
+export CAMERA_FRONT_INDEX="0"
+export CAMERA_WIDTH="640"
+export CAMERA_HEIGHT="480"
+export CAMERA_FPS="30"
+
+# --- データセット / ポリシー名（タスクごとに書き換える）---
+export TASK_NAME="pickup-cube"
+export TASK_DESCRIPTION="Grab the black cube and put it in the box"
+export DATASET_REPO_ID="${HF_USER}/so101-${TASK_NAME}"
+export POLICY_TYPE="act"   # act | diffusion | pi0 | smolvla
+export POLICY_REPO_ID="${HF_USER}/so101-${POLICY_TYPE}-${TASK_NAME}"
