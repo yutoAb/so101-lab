@@ -7,10 +7,11 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 echo "==> Setting up follower motors on $FOLLOWER_PORT"
 echo "    Connect ONE motor at a time when the CLI prompts you."
 echo
-lerobot-setup-motors \
+uv run lerobot-setup-motors \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT"

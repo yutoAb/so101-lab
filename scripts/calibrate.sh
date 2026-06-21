@@ -7,16 +7,17 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 echo "==> Calibrating follower arm..."
-lerobot-calibrate \
+uv run lerobot-calibrate \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID"
 
 echo
 echo "==> Calibrating leader arm..."
-lerobot-calibrate \
+uv run lerobot-calibrate \
     --teleop.type=so101_leader \
     --teleop.port="$LEADER_PORT" \
     --teleop.id="$LEADER_ID"

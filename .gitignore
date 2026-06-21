@@ -33,3 +33,5 @@ Thumbs.db
 # キャリブレーションファイル（個体差を含むため共有しない）
 calibration/
 *.calib.json
+
+memo.md

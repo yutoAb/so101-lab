@@ -8,6 +8,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 NUM_EPISODES="${NUM_EPISODES:-50}"
 EPISODE_TIME_SEC="${EPISODE_TIME_SEC:-30}"
@@ -16,7 +17,7 @@ RESET_TIME_SEC="${RESET_TIME_SEC:-10}"
 echo "==> Recording $NUM_EPISODES episodes for task: '$TASK_DESCRIPTION'"
 echo "    Dataset will be pushed to: $DATASET_REPO_ID"
 
-lerobot-record \
+uv run lerobot-record \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \

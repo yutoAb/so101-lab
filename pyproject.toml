@@ -1,0 +1,8 @@
+[project]
+name = "so101-lab"
+version = "0.1.0"
+description = "SO-101 dual-arm experiments with HuggingFace LeRobot"
+requires-python = ">=3.10"
+dependencies = [
+    "lerobot[feetech]",
+]

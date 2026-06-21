@@ -7,6 +7,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-10}"
 EPISODE_TIME_SEC="${EPISODE_TIME_SEC:-30}"
@@ -15,7 +16,7 @@ EVAL_DATASET_REPO_ID="${HF_USER}/eval-${TASK_NAME}"
 echo "==> Running inference with policy: $POLICY_REPO_ID"
 echo "    Eval dataset will be pushed to: $EVAL_DATASET_REPO_ID"
 
-lerobot-record \
+uv run lerobot-record \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \

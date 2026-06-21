@@ -9,6 +9,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 OUTPUT_DIR="outputs/train/${POLICY_TYPE}_${TASK_NAME}"
 
@@ -16,7 +17,7 @@ echo "==> Training policy '$POLICY_TYPE' on dataset '$DATASET_REPO_ID'"
 echo "    Output: $OUTPUT_DIR"
 echo "    Will push to: $POLICY_REPO_ID"
 
-lerobot-train \
+uv run lerobot-train \
     --dataset.repo_id="$DATASET_REPO_ID" \
     --policy.type="$POLICY_TYPE" \
     --policy.device=cuda \

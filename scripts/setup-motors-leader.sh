@@ -15,10 +15,11 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 echo "==> Setting up leader motors on $LEADER_PORT"
 echo "    Match each motor's gear ratio to the joint requested by the CLI."
 echo
-lerobot-setup-motors \
+uv run lerobot-setup-motors \
     --teleop.type=so101_leader \
     --teleop.port="$LEADER_PORT"

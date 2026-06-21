@@ -6,9 +6,10 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
+cd "$SCRIPT_DIR/.."
 
 # カメラ表示も同時に見たい場合は --display_data=true を追加（rerun が必要）
-lerobot-teleoperate \
+uv run lerobot-teleoperate \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \

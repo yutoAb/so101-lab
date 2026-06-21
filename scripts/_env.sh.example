@@ -20,6 +20,11 @@ export LEADER_ID="my_leader"
 # --- HuggingFace ユーザー名（hf auth whoami で確認）---
 export HF_USER="yutoabe"
 
+# --- HuggingFace アクセストークン ---
+# https://huggingface.co/settings/tokens で write 権限のものを発行
+# huggingface_hub が HF_TOKEN env var を自動で拾うので、hf auth login は不要
+export HF_TOKEN="hf_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
 # --- カメラ設定 ---
 # Mac: index_or_path=0 から順に試す
 # Linux: /dev/video0 等
