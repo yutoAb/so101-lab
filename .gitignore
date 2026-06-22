@@ -18,6 +18,8 @@ wandb/
 # 動画・データ（Hub に push 済みなのでローカルは不要）
 *.mp4
 *.mkv
+*.mov
+*.MOV
 *.parquet
 data/
 
