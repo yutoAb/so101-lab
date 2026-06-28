@@ -27,6 +27,7 @@ uv run lerobot-record \
     --teleop.id="$LEADER_ID" \
     --display_data=true \
     --dataset.repo_id="$DATASET_REPO_ID" \
+    --dataset.private=true \
     --dataset.num_episodes="$NUM_EPISODES" \
     --dataset.episode_time_s="$EPISODE_TIME_SEC" \
     --dataset.reset_time_s="$RESET_TIME_SEC" \

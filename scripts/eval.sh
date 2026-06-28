@@ -24,6 +24,7 @@ uv run lerobot-record \
     --policy.path="$POLICY_REPO_ID" \
     --display_data=true \
     --dataset.repo_id="$EVAL_DATASET_REPO_ID" \
+    --dataset.private=true \
     --dataset.num_episodes="$NUM_EVAL_EPISODES" \
     --dataset.episode_time_s="$EPISODE_TIME_SEC" \
     --dataset.single_task="$TASK_DESCRIPTION" \
