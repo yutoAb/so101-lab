@@ -20,6 +20,11 @@ export LEADER_ID="my_leader"
 # --- HuggingFace ユーザー名（hf auth whoami で確認）---
 export HF_USER="yutoabe"
 
+# --- HuggingFace Hub 転送方式 ---
+# 回線によっては新バックエンド（Xet）のアップロードがハングする。
+# その場合はこれを有効にして旧方式（LFS）に切り替える。
+export HF_HUB_DISABLE_XET=1
+
 # --- HuggingFace アクセストークン ---
 # https://huggingface.co/settings/tokens で write 権限のものを発行
 # huggingface_hub が HF_TOKEN env var を自動で拾うので、hf auth login は不要
