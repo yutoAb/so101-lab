@@ -4,6 +4,10 @@
 # - リーダーで操作してフォロワーが動く軌跡 + カメラ映像を記録
 # - ${DATASET_REPO_ID} に自動アップロード
 # - エピソード数や時間は適宜調整
+#
+# display_data は false 固定：rerun のライブ表示を有効にすると Mac では CPU 負荷で
+# 制御ループが 30Hz を割る（実測 16〜29Hz）。映像の確認は収録後に
+# lerobot-dataset-viz で行う。vcodec も CPU 節約のため Apple HW エンコーダを指定。
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,13 +25,14 @@ uv run lerobot-record \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \
-    --robot.cameras="{ front: {type: opencv, index_or_path: $CAMERA_FRONT_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}}" \
+    --robot.cameras="{ front: {type: opencv, index_or_path: $CAMERA_FRONT_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}, wrist: {type: opencv, index_or_path: $CAMERA_WRIST_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}}" \
     --teleop.type=so101_leader \
     --teleop.port="$LEADER_PORT" \
     --teleop.id="$LEADER_ID" \
-    --display_data=true \
+    --display_data=false \
     --dataset.repo_id="$DATASET_REPO_ID" \
     --dataset.private=true \
+    --dataset.vcodec=h264_videotoolbox \
     --dataset.num_episodes="$NUM_EPISODES" \
     --dataset.episode_time_s="$EPISODE_TIME_SEC" \
     --dataset.reset_time_s="$RESET_TIME_SEC" \

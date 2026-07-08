@@ -20,11 +20,12 @@ uv run lerobot-record \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \
-    --robot.cameras="{ front: {type: opencv, index_or_path: $CAMERA_FRONT_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}}" \
+    --robot.cameras="{ front: {type: opencv, index_or_path: $CAMERA_FRONT_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}, wrist: {type: opencv, index_or_path: $CAMERA_WRIST_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}}" \
     --policy.path="$POLICY_REPO_ID" \
     --display_data=true \
     --dataset.repo_id="$EVAL_DATASET_REPO_ID" \
     --dataset.private=true \
+    --dataset.vcodec=h264_videotoolbox \
     --dataset.num_episodes="$NUM_EVAL_EPISODES" \
     --dataset.episode_time_s="$EPISODE_TIME_SEC" \
     --dataset.single_task="$TASK_DESCRIPTION" \
