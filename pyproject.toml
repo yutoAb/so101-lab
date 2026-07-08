@@ -2,7 +2,10 @@
 name = "so101-lab"
 version = "0.1.0"
 description = "SO-101 dual-arm experiments with HuggingFace LeRobot"
-requires-python = ">=3.10"
+# lerobot / Python ともにバージョンを固定する。緩めると uv が Python バージョンごとに
+# 別の lerobot を解決してしまい（<3.12 → 0.4.4, >=3.12 → 0.6.0）、Mac で収録した
+# データセットを学習サーバ側で読めなくなる。
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "lerobot[feetech]",
+    "lerobot[feetech]==0.5.1",
 ]
