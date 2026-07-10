@@ -43,7 +43,7 @@ install.sh  →  find-port.sh  →  setup-motors-{follower,leader}.sh
 
 - `DATASET_REPO_ID="${HF_USER}/so101-${TASK_NAME}"` — HF Hub への push 先データセット
 - `POLICY_REPO_ID="${HF_USER}/so101-${POLICY_TYPE}-${TASK_NAME}"` — HF Hub への push 先ポリシー
-- `EVAL_DATASET_REPO_ID="${HF_USER}/eval-${TASK_NAME}"` — `eval.sh` 内でインラインで組み立てる
+- `EVAL_DATASET_REPO_ID="${HF_USER}/eval_${TASK_NAME}"` — `eval.sh` 内でインラインで組み立てる（lerobot はポリシー付き record のデータセット名が `eval_` 始まりであることを要求する）
 
 タスク切り替えはスクリプトを直すのではなく `_env.sh` の `TASK_NAME` / `TASK_DESCRIPTION` / `POLICY_TYPE` を書き換える。
 
