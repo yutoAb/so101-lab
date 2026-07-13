@@ -18,10 +18,23 @@ NUM_EPISODES="${NUM_EPISODES:-50}"
 EPISODE_TIME_SEC="${EPISODE_TIME_SEC:-30}"
 RESET_TIME_SEC="${RESET_TIME_SEC:-10}"
 
-echo "==> Recording $NUM_EPISODES episodes for task: '$TASK_DESCRIPTION'"
+# RESUME=true で既存データセットに追記する（num_episodes はデータセットの「合計」目標）。
+# 例: 既存50本 + 追加100本 → RESUME=true NUM_EPISODES=150 ./scripts/record.sh
+# lerobot 0.5.1 の resume は Hub キャッシュには書けないため、書き込み可能な
+# DATASET_ROOT（ローカルの実体）を必ず指定する。
+RESUME="${RESUME:-false}"
+DATASET_ROOT="${DATASET_ROOT:-}"
+RESUME_FLAG=()
+ROOT_FLAG=()
+[[ "$RESUME" == "true" ]] && RESUME_FLAG=(--resume=true)
+[[ -n "$DATASET_ROOT" ]] && ROOT_FLAG=(--dataset.root="$DATASET_ROOT")
+
+echo "==> Recording (target total: $NUM_EPISODES episodes, resume=$RESUME) task: '$TASK_DESCRIPTION'"
 echo "    Dataset will be pushed to: $DATASET_REPO_ID"
 
 uv run lerobot-record \
+    "${RESUME_FLAG[@]}" \
+    "${ROOT_FLAG[@]}" \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \
