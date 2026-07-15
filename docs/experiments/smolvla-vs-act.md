@@ -63,13 +63,36 @@ EVAL_POLICY=abePclWaseda/so101-smolvla-cube-in-case-v2 NUM_EVAL_EPISODES=1 ./scr
 ## 落とし穴
 
 1. **`--policy.path`（type ではない）**。type だと基盤の重みを捨てる。
-2. **言語条件付き**：データは `TASK_DESCRIPTION` が全エピソードに付与済み。eval 時も同じ文が渡ることを確認。
-3. **Mac の推論レートが最大リスク**。450M の VLA は Mac で 30Hz を割る可能性大。割ると
+2. **カメラ名の不一致（実際にハマった）**。SmolVLA base は `observation.images.camera1/2/3`（3台）を
+   期待するが、うちのデータは `front/wrist`（2台）。そのままだと make_policy が
+   `Feature mismatch` で落ちる。バリデーションは「dataset ⊆ policy」なら通るので、
+   `RENAME_MAP` で front→camera1, wrist→camera2 にリネームすれば OK（camera3 は無くてよい＝
+   SmolVLA は可変カメラ対応。`empty_cameras` パディングも不要）。`train.sh` の `RENAME_MAP` で渡す。
+3. **言語条件付き**：データは `TASK_DESCRIPTION` が全エピソードに付与済み。eval 時も同じ文が渡ることを確認。
+4. **Mac の推論レートが最大リスク**。450M の VLA は Mac で 30Hz を割る可能性大。割ると
    チャンク開ループで補正が効かず空振りが増える（前回の 10Hz 問題と同じ機序）。Hz は必ずログで確認。
    遅すぎたら 0.5.1 の async 推論（`[async]` extra）で「推論を別マシン・実機は Mac」に分離する手がある。
    ただしまず素の数字を出す。
-4. g27 で SmolVLA base の初回 DL が走る。`HF_HUB_DISABLE_XET=1` は継続。
+5. SmolVLA base の初回 DL が走る。`HF_HUB_DISABLE_XET=1` は継続。
+6. **出力ディレクトリの残骸**：失敗して作られた `outputs/train/smolvla_*` が残ると
+   `FileExistsError`。再実行前に `rm -rf` する。
+
+## 実行環境メモ
+
+ラボGPUはスケジューラ無しの共有ベアメタル。g27(A6000×2) が飽和していたので、他ノードを探して
+**g16 の空き RTX 3090(24GB, idle)** で実行。ホームはノード間非共有なので g16 に repo を clone、
+`_env.sh` を g27 から転送、`uv sync` してから起動。実launch:
+
+```bash
+# g16, GPU1(空き3090)。3090 24GB なので batch は控えめ（実測 batch16 で VRAM 5GB弱・98%util）
+CUDA_VISIBLE_DEVICES=1 HF_HUB_DISABLE_XET=1 \
+POLICY_BASE=lerobot/smolvla_base TRAIN_STEPS=30000 BATCH_SIZE=16 \
+RENAME_MAP='{"observation.images.front":"observation.images.camera1","observation.images.wrist":"observation.images.camera2"}' \
+nohup ./scripts/train.sh > ~/smolvla_train.log 2>&1 &
+```
 
 ## ログ
 
-- 2026-07-15: 計画策定。`pyproject` を `[feetech,smolvla]` に更新、`train.sh` を fine-tune 対応に拡張。
+- 2026-07-15: 計画策定。`pyproject` を `[feetech,smolvla]` に更新、`train.sh` を fine-tune / rename_map 対応に拡張。
+- 2026-07-15: g16 の空き 3090 で fine-tune 開始（batch16, 30k step, ETA ~2.5h）。学習可能 100M / 全 450M、
+  vision encoder は凍結。カメラ名不一致は `RENAME_MAP` で解決。

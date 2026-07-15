@@ -25,11 +25,18 @@ OUTPUT_DIR="outputs/train/${POLICY_TYPE}_${TASK_NAME}"
 POLICY_BASE="${POLICY_BASE:-}"
 TRAIN_STEPS="${TRAIN_STEPS:-}"
 BATCH_SIZE="${BATCH_SIZE:-}"
+# RENAME_MAP: データセットのカメラキーを基盤モデルが期待するキーに合わせる。
+# SmolVLA base は observation.images.camera1/2/3 を期待するが、うちのデータは front/wrist。
+# dataset⊆policy なら通る（validate_visual_features_consistency）ので 2台を camera1/2 に
+# リネームすればよい（足りない camera3 は無くてよい＝SmolVLA は可変カメラ対応）。
+# 例: RENAME_MAP='{"observation.images.front":"observation.images.camera1","observation.images.wrist":"observation.images.camera2"}'
+RENAME_MAP="${RENAME_MAP:-}"
 
 POLICY_FLAG=(--policy.type="$POLICY_TYPE")
 [[ -n "$POLICY_BASE" ]] && POLICY_FLAG=(--policy.path="$POLICY_BASE")
-STEP_FLAG=();  [[ -n "$TRAIN_STEPS" ]] && STEP_FLAG=(--steps="$TRAIN_STEPS")
-BATCH_FLAG=(); [[ -n "$BATCH_SIZE" ]]  && BATCH_FLAG=(--batch_size="$BATCH_SIZE")
+STEP_FLAG=();   [[ -n "$TRAIN_STEPS" ]] && STEP_FLAG=(--steps="$TRAIN_STEPS")
+BATCH_FLAG=();  [[ -n "$BATCH_SIZE" ]]  && BATCH_FLAG=(--batch_size="$BATCH_SIZE")
+RENAME_FLAG=(); [[ -n "$RENAME_MAP" ]]  && RENAME_FLAG=(--rename_map="$RENAME_MAP")
 
 echo "==> Training policy '$POLICY_TYPE' on dataset '$DATASET_REPO_ID'"
 [[ -n "$POLICY_BASE" ]] && echo "    Fine-tuning from base: $POLICY_BASE"
@@ -41,6 +48,7 @@ uv run lerobot-train \
     "${POLICY_FLAG[@]}" \
     "${STEP_FLAG[@]}" \
     "${BATCH_FLAG[@]}" \
+    "${RENAME_FLAG[@]}" \
     --policy.device=cuda \
     --output_dir="$OUTPUT_DIR" \
     --job_name="${POLICY_TYPE}_${TASK_NAME}" \
