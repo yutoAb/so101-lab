@@ -7,5 +7,7 @@ description = "SO-101 dual-arm experiments with HuggingFace LeRobot"
 # データセットを学習サーバ側で読めなくなる。
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "lerobot[feetech]==0.5.1",
+    # feetech: SO-101 のサーボ制御。smolvla: 基盤 VLA の fine-tune/推論に必要な
+    # transformers 等（学習=g27 も 推論=Mac も両方で要る）。
+    "lerobot[feetech,smolvla]==0.5.1",
 ]
