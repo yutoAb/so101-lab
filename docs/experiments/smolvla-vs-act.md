@@ -109,6 +109,27 @@ RENAME_MAP='{"observation.images.front":"observation.images.camera1","observatio
 nohup ./scripts/train.sh > ~/smolvla_train.log 2>&1 &
 ```
 
+## 追記: async 分割推論とゼロショット（2026-07-16）
+
+**async 推論（重い VLA を GPU 機で回して 30Hz を狙う）**
+- 構成: policy_server（g16 GPU）↔ gRPC ↔ robot_client（Mac 実機）。`pyproject` に `[async]` 追加。
+- 起動: サーバ `python -m lerobot.async_inference.policy_server --host=0.0.0.0 --port=8080`。
+  Mac→g16 は SSH トンネル `ssh -N -L 18080:localhost:8080 g16`。**Mac の 8080 は VS Code(Code Helper)が
+  掴んでいて gRPC が SETTINGS でタイムアウトするので 18080 を使う**（ハマった）。client wrapper: `scripts/eval_async.sh`。
+- 結果: **滑らかに 30Hz 達成**（`running slower` 警告消滅）。サーバ側の SmolVLA 推論は 3090 で ~270ms/chunk
+  だが、1 チャンク=50 アクション先読みなので制御は 30Hz を維持できる（＝重い推論と滑らかな制御を分離できた）。
+- ただし **掴みの精度は async で落ちた**。原因はチャンク集約（`weighted_average` が重なりをブレンド→掴む瞬間が
+  なまる）＋通信遅延。`AGG_FN=latest_only` 等で調整可能だが、同期 eval で既にカバレッジは取れているので深追いせず。
+
+**ゼロショット（fine-tune なしの base VLA は動くか）**
+- `lerobot/smolvla_base`（SO-100 を事前学習に含む最有力候補）を async でゼロショット実行 → **タスクせず 90° で固まる**。
+  プロンプトを変えても同じ（`TASK_DESCRIPTION` を振っても不変）。
+- 結論: **プロンプト（What）は効くが、行動のグラウンディング（How=この実機の関節空間/正規化）が無いと動かない。
+  fine-tune が埋めているのは How。大規模事前学習でも fine-tune 無しではこの実機で動かない**。
+- pi0_base(14GB, 3B) も候補だが Franka/DROID 中心で SO-101 とは関節構成が違い、より不利（未実行）。
+- 補足: ゼロショット判定は「掴めない」ではなく「タスク自体をしない（デフォルト姿勢に潰れる）」。ACT の
+  操作者写り込みで静止したのと同じ「未知→平均姿勢」現象。
+
 ## ログ
 
 - 2026-07-15: 計画策定。`pyproject` を `[feetech,smolvla]` に更新、`train.sh` を fine-tune / rename_map 対応に拡張。
@@ -117,4 +138,6 @@ nohup ./scripts/train.sh > ~/smolvla_train.log 2>&1 &
 - 2026-07-16: 学習完了（実測 ~3.2h, loss ~0.035）→ Hub push。Mac で eval。推論 ~3Hz（要 EPISODE_TIME_SEC 延長）。
   eval のカメラ名は `CAMERA_FRONT_KEY=camera1 CAMERA_WRIST_KEY=camera2` で解決。
   結果：**左+中央 3/3 ○、右 0/2 ×（左ズレで失敗）＝ ACT と同じ境界**。事前学習は分布外を埋めない、を確認。
-  比較図 `docs/images/coverage_map_act_vs_smolvla.png`。
+  比較図 `docs/images/coverage_map_act_vs_smolvla.png`。記事: https://qiita.com/yuAbe/items/6bad2384bc2233727d3e
+- 2026-07-16: async 分割推論を構築（30Hz 達成）＋ ゼロショット検証（base は固まる）。上の「追記」参照。
+  中央でも右寄りは外れる＝カバレッジは硬い境界でなくデータ密度のグラデーション、も実機で確認。
