@@ -29,6 +29,11 @@ POLICY_TYPE_ASYNC="${POLICY_TYPE_ASYNC:-smolvla}"
 CAMERA_FRONT_KEY="${CAMERA_FRONT_KEY:-camera1}"
 CAMERA_WRIST_KEY="${CAMERA_WRIST_KEY:-camera2}"
 ACTIONS_PER_CHUNK="${ACTIONS_PER_CHUNK:-50}"
+# チャンク集約の挙動。weighted_average は滑らかだが掴みの精密動作がなまる。
+# latest_only は混ぜず最新チャンクをそのまま使う（精密だが少しカクつく）。
+# 掴めない時は AGG_FN=latest_only を、寄せが弱い時は CHUNK_THRESHOLD を上げる(例:0.7)。
+AGG_FN="${AGG_FN:-weighted_average}"
+CHUNK_THRESHOLD="${CHUNK_THRESHOLD:-0.5}"
 
 echo "==> async eval"
 echo "    policy : $ASYNC_POLICY ($POLICY_TYPE_ASYNC) @ GPU 機"
@@ -47,6 +52,6 @@ uv run python -m lerobot.async_inference.robot_client \
     --policy_device=cuda \
     --client_device=cpu \
     --actions_per_chunk="$ACTIONS_PER_CHUNK" \
-    --chunk_size_threshold=0.5 \
+    --chunk_size_threshold="$CHUNK_THRESHOLD" \
     --fps="$CAMERA_FPS" \
-    --aggregate_fn_name=weighted_average
+    --aggregate_fn_name="$AGG_FN"
