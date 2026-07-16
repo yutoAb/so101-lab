@@ -20,8 +20,17 @@ EVAL_DATASET_REPO_ID="${HF_USER}/eval_${TASK_NAME}"
 # EVAL_POLICY=<repo_id> を指定する（例: EVAL_POLICY=user/so101-act-foo-50k ./scripts/eval.sh）。
 POLICY_PATH="${EVAL_POLICY:-$POLICY_REPO_ID}"
 
+# RENAME_MAP: 実機のカメラキー(front/wrist)を、ポリシーが期待するキーに合わせる。
+# SmolVLA は camera1/2/3 を期待するので学習(train.sh)と同じリネームを eval でも渡す必要がある
+# （渡さないと実機の front/wrist と不一致で落ちる）。record 側の受け口は --dataset.rename_map。
+# 例: RENAME_MAP='{"observation.images.front":"observation.images.camera1","observation.images.wrist":"observation.images.camera2"}'
+# ACT は front/wrist をそのまま学習しているので RENAME_MAP 不要（未指定でOK）。
+RENAME_MAP="${RENAME_MAP:-}"
+RENAME_FLAG=(); [[ -n "$RENAME_MAP" ]] && RENAME_FLAG=(--dataset.rename_map="$RENAME_MAP")
+
 echo "==> Running inference with policy: $POLICY_PATH"
 echo "    Eval dataset will be pushed to: $EVAL_DATASET_REPO_ID"
+[[ -n "$RENAME_MAP" ]] && echo "    rename_map: $RENAME_MAP"
 
 # 前回の eval のローカルキャッシュが残っていると lerobot が FileExistsError で落ちる。
 # eval データは毎回 Hub に push する使い捨てなので、開始前に消しておく。
@@ -37,6 +46,7 @@ uv run lerobot-record \
     --robot.id="$FOLLOWER_ID" \
     --robot.cameras="{ front: {type: opencv, index_or_path: $CAMERA_FRONT_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}, wrist: {type: opencv, index_or_path: $CAMERA_WRIST_INDEX, width: $CAMERA_WIDTH, height: $CAMERA_HEIGHT, fps: $CAMERA_FPS}}" \
     --policy.path="$POLICY_PATH" \
+    "${RENAME_FLAG[@]}" \
     --display_data=false \
     --dataset.repo_id="$EVAL_DATASET_REPO_ID" \
     --dataset.private=true \
