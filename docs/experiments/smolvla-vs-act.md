@@ -51,14 +51,28 @@ EVAL_POLICY=abePclWaseda/so101-smolvla-cube-in-case-v2 NUM_EVAL_EPISODES=1 ./scr
 
 ## 成果物（この表を埋める）
 
-| 指標 | ACT (102ep, 100k) | SmolVLA (102ep, ~30k ft) |
+| 指標 | ACT (102ep, 100k) | SmolVLA (102ep, 30k ft) |
 |---|---|---|
-| 分布内成功率（左+中央）| 100% | ? |
-| **分布外成功率（右）** | **0%** | **?** ← 主結果 |
-| 全体 | 7/11 ≈ 64% | ? |
-| 学習時間 | ~10.7h | ? |
-| 推論レート（Mac 実機）| ~30Hz | ? |
-| モデルサイズ | 数十MB（ResNet18）| ~450MB |
+| 分布内成功率（左+中央）| 100%（7/7）| **100%（3/3: 左奥/左中/中央）** |
+| **分布外成功率（右）** | **0%（0/4）** | **0%（0/2: 右奥/右手前）** ← 主結果 |
+| 学習時間 | ~10.7h（A6000）| ~3.2h（3090, batch16）|
+| 推論レート（Mac 実機）| ~30Hz | **~3Hz** |
+| モデルサイズ | 数十MB（ResNet18）| ~450M params（VLM: SmolVLM2-500M）|
+
+![ACT vs SmolVLA カバレッジ比較](../images/coverage_map_act_vs_smolvla.png)
+
+## 結論
+
+**事前学習済み VLA（SmolVLA）でも、分布外（右ゾーン）は掴めない。** 成功/失敗の境界は
+ACT とまったく同じ形（左・中央＝○、右＝×）になった。しかも右のブロックに対しては
+**「左側を掴みにいって外す」系統的な左ズレ**を示し、ACT の「一番近い学習軌跡を再生する」挙動と
+同じ機序だった。つまり：
+
+- **データ被覆が働く領域を決める。モデルの事前学習は魔法ではない。** 右にデータを置かない限り右は取れない。
+- 分布内では SmolVLA も 100% を維持（左中は ACT 未計測だが SmolVLA は ○）。
+- ただし **SmolVLA は Mac で ~3Hz（ACT の 1/10）**。位置制御なので時間を延ばせばタスクは完了するが、
+  リアルタイム性は無い。実用には async 推論（推論を GPU 機に分離）が要る。→ 前回の「動く範囲は
+  モデルではなくデータの地図で決まる」を、より強い形（大規模事前学習モデルでも同じ）で再確認した。
 
 ## 落とし穴
 
@@ -68,6 +82,10 @@ EVAL_POLICY=abePclWaseda/so101-smolvla-cube-in-case-v2 NUM_EVAL_EPISODES=1 ./scr
    `Feature mismatch` で落ちる。バリデーションは「dataset ⊆ policy」なら通るので、
    `RENAME_MAP` で front→camera1, wrist→camera2 にリネームすれば OK（camera3 は無くてよい＝
    SmolVLA は可変カメラ対応。`empty_cameras` パディングも不要）。`train.sh` の `RENAME_MAP` で渡す。
+   - **eval(推論)側は rename_map が効かない**：`lerobot-record` は make_policy を
+     リネーム前の ds_meta で検証するため `--dataset.rename_map` では落ちる。eval では
+     ロボットのカメラ名自体を camera1/camera2 にする（`eval.sh` の `CAMERA_FRONT_KEY`/
+     `CAMERA_WRIST_KEY`）。学習(train)＝`RENAME_MAP`、推論(eval)＝カメラ名、と受け口が違う点に注意。
 3. **言語条件付き**：データは `TASK_DESCRIPTION` が全エピソードに付与済み。eval 時も同じ文が渡ることを確認。
 4. **Mac の推論レートが最大リスク**。450M の VLA は Mac で 30Hz を割る可能性大。割ると
    チャンク開ループで補正が効かず空振りが増える（前回の 10Hz 問題と同じ機序）。Hz は必ずログで確認。
@@ -94,5 +112,9 @@ nohup ./scripts/train.sh > ~/smolvla_train.log 2>&1 &
 ## ログ
 
 - 2026-07-15: 計画策定。`pyproject` を `[feetech,smolvla]` に更新、`train.sh` を fine-tune / rename_map 対応に拡張。
-- 2026-07-15: g16 の空き 3090 で fine-tune 開始（batch16, 30k step, ETA ~2.5h）。学習可能 100M / 全 450M、
+- 2026-07-15: g16 の空き 3090 で fine-tune 開始（batch16, 30k step）。学習可能 100M / 全 450M、
   vision encoder は凍結。カメラ名不一致は `RENAME_MAP` で解決。
+- 2026-07-16: 学習完了（実測 ~3.2h, loss ~0.035）→ Hub push。Mac で eval。推論 ~3Hz（要 EPISODE_TIME_SEC 延長）。
+  eval のカメラ名は `CAMERA_FRONT_KEY=camera1 CAMERA_WRIST_KEY=camera2` で解決。
+  結果：**左+中央 3/3 ○、右 0/2 ×（左ズレで失敗）＝ ACT と同じ境界**。事前学習は分布外を埋めない、を確認。
+  比較図 `docs/images/coverage_map_act_vs_smolvla.png`。
