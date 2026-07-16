@@ -8,7 +8,9 @@
 #        cd ~/so101-lab && CUDA_VISIBLE_DEVICES=1 HF_HUB_DISABLE_XET=1 \
 #          uv run python -m lerobot.async_inference.policy_server --host=0.0.0.0 --port=8080 --fps=30
 #  (2) Mac→GPU 機の SSH トンネルを張る（別ターミナルで開きっぱなし）:
-#        ssh -N -L 8080:localhost:8080 g16
+#        ssh -N -L 18080:localhost:8080 g16
+#      ※ Mac 側ローカルポートは 18080 を使う。8080 は VS Code(Code Helper)が
+#        使っていることがあり、衝突すると gRPC が SETTINGS でタイムアウトする。
 #
 # 使い方（Mac、カメラ権限のある Terminal で）:
 #   uv run python scripts/go_home.py           # 開始姿勢をそろえる
@@ -21,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
 cd "$SCRIPT_DIR/.."
 
-SERVER_ADDRESS="${SERVER_ADDRESS:-127.0.0.1:8080}"
+SERVER_ADDRESS="${SERVER_ADDRESS:-127.0.0.1:18080}"
 ASYNC_POLICY="${ASYNC_POLICY:-abePclWaseda/so101-smolvla-cube-in-case-v2}"
 POLICY_TYPE_ASYNC="${POLICY_TYPE_ASYNC:-smolvla}"
 CAMERA_FRONT_KEY="${CAMERA_FRONT_KEY:-camera1}"
