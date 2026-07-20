@@ -38,8 +38,8 @@ echo "==> Recording (target total: $NUM_EPISODES episodes, resume=$RESUME) task:
 echo "    Dataset will be pushed to: $DATASET_REPO_ID"
 
 uv run lerobot-record \
-    "${RESUME_FLAG[@]}" \
-    "${ROOT_FLAG[@]}" \
+    "${RESUME_FLAG[@]+"${RESUME_FLAG[@]}"}" \
+    "${ROOT_FLAG[@]+"${ROOT_FLAG[@]}"}" \
     --robot.type=so101_follower \
     --robot.port="$FOLLOWER_PORT" \
     --robot.id="$FOLLOWER_ID" \
