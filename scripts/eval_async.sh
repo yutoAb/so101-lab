@@ -23,6 +23,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
 cd "$SCRIPT_DIR/.."
 
+# 発話などから指示文を差し替えたい時に使う（voice_control.py が渡す）。SmolVLA の言語条件に効く。
+TASK_DESCRIPTION="${TASK_OVERRIDE:-$TASK_DESCRIPTION}"
+
 SERVER_ADDRESS="${SERVER_ADDRESS:-127.0.0.1:18080}"
 ASYNC_POLICY="${ASYNC_POLICY:-abePclWaseda/so101-smolvla-cube-in-case-v2}"
 POLICY_TYPE_ASYNC="${POLICY_TYPE_ASYNC:-smolvla}"

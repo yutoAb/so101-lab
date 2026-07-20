@@ -13,3 +13,14 @@ dependencies = [
     # 重い VLA を Mac で 3Hz でなく、GPU 機で回して 30Hz を狙うため。
     "lerobot[feetech,smolvla,async]==0.5.1",
 ]
+
+[project.optional-dependencies]
+# voice: 音声オーケストレーション（scripts/voice_control.py）。マイク→Whisper で
+# 発話を文字起こしし、eval.sh 等を声で起動/停止する。ロボット本体には不要なので
+# 任意 extra として分離（Mac だけに入れれば良い）。`uv sync --extra voice`。
+voice = [
+    "faster-whisper>=1.0",   # CTranslate2 版 Whisper。Mac CPU/int8 で小モデルはほぼ実時間
+    "sounddevice>=0.4",      # CLI 版(voice_control.py)のマイク入力（PortAudio）
+    "fastapi>=0.110",        # Web 版(voice_web.py)のローカル API
+    "uvicorn>=0.30",         # ASGI サーバ（127.0.0.1 のみで待受）
+]

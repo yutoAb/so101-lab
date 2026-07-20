@@ -45,3 +45,9 @@ export TASK_DESCRIPTION="Grab the black cube and put it in the box"
 export DATASET_REPO_ID="${HF_USER}/so101-${TASK_NAME}"
 export POLICY_TYPE="act"   # act | diffusion | pi0 | smolvla
 export POLICY_REPO_ID="${HF_USER}/so101-${POLICY_TYPE}-${TASK_NAME}"
+
+# --- 音声操作（scripts/voice_control.py。任意）---
+# すべて任意。未設定でも動く（しきい値は起動時に自動較正）。
+# export VOICE_MODEL="small"                 # Whisper モデル tiny/base/small/medium
+# export VOICE_START_CMD="./scripts/eval.sh" # 「開始」で呼ぶコマンド（async は eval_async.sh）
+# export VOICE_WAKEWORD=""                   # 設定すると誤爆防止（例: "ロボット"）

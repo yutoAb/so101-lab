@@ -9,6 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
 cd "$SCRIPT_DIR/.."
 
+# 発話などから指示文を差し替えたい時に使う（voice_control.py が渡す）。
+# 未指定なら _env.sh の TASK_DESCRIPTION のまま。ACT は無視、SmolVLA は言語条件に効く。
+TASK_DESCRIPTION="${TASK_OVERRIDE:-$TASK_DESCRIPTION}"
+
 NUM_EVAL_EPISODES="${NUM_EVAL_EPISODES:-10}"
 EPISODE_TIME_SEC="${EPISODE_TIME_SEC:-30}"
 # lerobot 0.5.1 はポリシー付き record のデータセット名が 'eval_' で始まることを要求する

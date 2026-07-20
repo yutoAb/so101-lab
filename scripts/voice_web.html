@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SO-101 音声操作</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, "Hiragino Sans", sans-serif;
+    background: #0e1116; color: #e6edf3; display: flex; justify-content: center;
+    min-height: 100vh;
+  }
+  main { width: 100%; max-width: 480px; padding: 24px 20px 40px; }
+  h1 { font-size: 1.2rem; margin: 0 0 4px; }
+  .sub { color: #8b949e; font-size: .82rem; margin-bottom: 20px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+    border-radius: 999px; font-size: .8rem; font-weight: 600; margin-bottom: 20px;
+  }
+  .pill.idle { background: #21262d; color: #8b949e; }
+  .pill.run  { background: #1f6f43; color: #d6ffe4; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.run .dot { animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+
+  #mic {
+    width: 160px; height: 160px; border-radius: 50%; border: none; margin: 8px auto 6px;
+    display: block; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: radial-gradient(circle at 50% 40%, #2f81f7, #1f6feb); user-select: none;
+    -webkit-user-select: none; touch-action: none; transition: transform .08s, box-shadow .2s;
+    box-shadow: 0 0 0 0 rgba(47,129,247,.5);
+  }
+  #mic:active, #mic.rec { transform: scale(.96); box-shadow: 0 0 0 14px rgba(47,129,247,.18); }
+  #mic.rec { background: radial-gradient(circle at 50% 40%, #f85149, #da3633); }
+  .hint { text-align: center; color: #8b949e; font-size: .8rem; margin-bottom: 22px; }
+
+  .transcript {
+    min-height: 48px; background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px; font-size: 1rem;
+  }
+  .transcript .cmd { color: #58a6ff; font-weight: 700; }
+  .msg { color: #8b949e; font-size: .82rem; min-height: 18px; margin-bottom: 18px; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 8px; }
+  input[type=text] {
+    flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #30363d;
+    background: #0d1117; color: #e6edf3; font-size: .9rem;
+  }
+  button.act {
+    padding: 10px 14px; border-radius: 8px; border: 1px solid #30363d; cursor: pointer;
+    background: #21262d; color: #e6edf3; font-size: .9rem; font-weight: 600;
+  }
+  button.act:hover { background: #30363d; }
+  button.stop { background: #da3633; border-color: #da3633; color: #fff; }
+  button.stop:hover { background: #f85149; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+
+  h2 { font-size: .8rem; color: #8b949e; margin: 8px 0 6px; font-weight: 600; }
+  #log {
+    list-style: none; margin: 0; padding: 0; font-size: .8rem; color: #8b949e;
+    max-height: 220px; overflow-y: auto;
+  }
+  #log li { padding: 5px 0; border-top: 1px solid #21262d; }
+  #log li .t { color: #6e7681; margin-right: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SO-101 音声操作</h1>
+  <div class="sub">マイクボタンを押しながら話す（例: 「入れて」「ホーム」「ストップ」）</div>
+  <span id="pill" class="pill idle"><span class="dot"></span><span id="pillText">待機中</span></span>
+
+  <button id="mic">🎤<br>押して話す</button>
+  <div class="hint">押している間だけ録音 → 離すと認識</div>
+
+  <div id="transcript" class="transcript">…</div>
+  <div id="msg" class="msg"></div>
+
+  <div class="row">
+    <input id="task" type="text" placeholder="タスク文（任意・空なら既定タスク）">
+    <button class="act" id="btnStart">開始</button>
+  </div>
+  <div class="grid2">
+    <button class="act" id="btnHome">ホーム</button>
+    <button class="act stop" id="btnStop">ストップ</button>
+  </div>
+
+  <h2>ログ</h2>
+  <ul id="log"></ul>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const logEl = $("log");
+
+function now() { return new Date().toLocaleTimeString("ja-JP"); }
+function addLog(text) {
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="t">${now()}</span>${text}`;
+  logEl.prepend(li);
+}
+function showResult(r) {
+  if (r.text !== undefined) {
+    const cmd = r.command && r.command !== "none" ? ` <span class="cmd">[${r.command}]</span>` : "";
+    $("transcript").innerHTML = (r.text || "（無音）") + cmd;
+  }
+  if (r.message) $("msg").textContent = r.message;
+  if (r.text || r.message) addLog(`${r.text ? "「"+r.text+"」→ " : ""}${r.message || ""}`);
+}
+function setStatus(running, kind) {
+  const pill = $("pill"), t = $("pillText");
+  if (running) { pill.className = "pill run"; t.textContent = `実行中${kind ? "（"+kind+"）" : ""}`; }
+  else { pill.className = "pill idle"; t.textContent = "待機中"; }
+}
+
+async function poll() {
+  try {
+    const r = await (await fetch("/status")).json();
+    setStatus(r.running, r.kind);
+  } catch (e) {}
+}
+setInterval(poll, 1000); poll();
+
+// --- ボタン操作（音声のフォールバック）---
+$("btnStart").onclick = async () => {
+  const task = $("task").value.trim();
+  const r = await (await fetch("/start", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task })
+  })).json();
+  showResult(r); poll();
+};
+$("btnHome").onclick = async () => { showResult(await (await fetch("/home", { method: "POST" })).json()); poll(); };
+$("btnStop").onclick = async () => { showResult(await (await fetch("/stop", { method: "POST" })).json()); poll(); };
+
+// --- マイク（押して話す）---
+let mediaRecorder = null, chunks = [], stream = null;
+
+async function ensureMic() {
+  if (stream) return true;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return true;
+  } catch (e) {
+    $("msg").textContent = "マイクの許可が必要です（ブラウザのプロンプトを許可してください）";
+    addLog("マイク取得失敗: " + e.message);
+    return false;
+  }
+}
+
+async function startRec() {
+  if (!(await ensureMic())) return;
+  chunks = [];
+  mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+  mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  mediaRecorder.onstop = sendRec;
+  mediaRecorder.start();
+  $("mic").classList.add("rec");
+  $("mic").innerHTML = "● 録音中<br>離すと認識";
+}
+function stopRec() {
+  if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+  $("mic").classList.remove("rec");
+  $("mic").innerHTML = "🎤<br>押して話す";
+}
+async function sendRec() {
+  const blob = new Blob(chunks, { type: "audio/webm" });
+  if (blob.size < 800) { $("msg").textContent = "短すぎます。もう少し長く押して話してください"; return; }
+  $("msg").textContent = "認識中…";
+  try {
+    const r = await (await fetch("/command", {
+      method: "POST", headers: { "Content-Type": "audio/webm" }, body: blob
+    })).json();
+    showResult(r); poll();
+  } catch (e) { $("msg").textContent = "送信エラー: " + e.message; }
+}
+
+const mic = $("mic");
+mic.addEventListener("pointerdown", (e) => { e.preventDefault(); startRec(); });
+mic.addEventListener("pointerup", (e) => { e.preventDefault(); stopRec(); });
+mic.addEventListener("pointerleave", () => stopRec());
+mic.addEventListener("pointercancel", () => stopRec());
+</script>
+</body>
+</html>
