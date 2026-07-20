@@ -14,6 +14,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/_env.sh"
 cd "$SCRIPT_DIR/.."
 
+# セッションごとに言語ラベル（single_task）を差し替える受け口。_env.sh が
+# TASK_DESCRIPTION を export するのでコマンド前置き override は消える → ここで拾い直す。
+# マルチタスク収録（例: 「赤を入れて」/「青を入れて」を同一データセットに）で使う。
+TASK_DESCRIPTION="${TASK_OVERRIDE:-$TASK_DESCRIPTION}"
+
 NUM_EPISODES="${NUM_EPISODES:-50}"
 EPISODE_TIME_SEC="${EPISODE_TIME_SEC:-30}"
 RESET_TIME_SEC="${RESET_TIME_SEC:-10}"
