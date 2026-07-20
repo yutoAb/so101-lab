@@ -106,3 +106,8 @@ TASK_OVERRIDE="青いブロックをカップに入れて" ...
 ## ログ
 
 - 2026-07-20: 計画策定。`record.sh` に `TASK_OVERRIDE` を追加（2 言語を 1 データセットに追記可能に）。
+  - あわせて `record.sh` の空配列展開を bash 3.2(macOS) 対応に修正（`set -u` で unbound になる問題）。
+- 2026-07-20: 収録完了。`abePclWaseda/so101-color-select`（Hub, private）= **赤 48 / 青 58 = 計 106 本**、
+  56,805 フレーム。左右ランダムで色と位置の相関を断って収集。2 ラベル（task_index 0=赤, 1=青）が
+  1 データセットに同居。収録中に 2 回コンプ通信断（`no status packet`）→ その都度 RESUME で継続。
+  次段: この 106 本で SmolVLA を fine-tune（`POLICY_BASE=lerobot/smolvla_base`, 30k step, RENAME_MAP）。
