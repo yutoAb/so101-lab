@@ -110,4 +110,6 @@ TASK_OVERRIDE="青いブロックをカップに入れて" ...
 - 2026-07-20: 収録完了。`abePclWaseda/so101-color-select`（Hub, private）= **赤 48 / 青 58 = 計 106 本**、
   56,805 フレーム。左右ランダムで色と位置の相関を断って収集。2 ラベル（task_index 0=赤, 1=青）が
   1 データセットに同居。収録中に 2 回コンプ通信断（`no status packet`）→ その都度 RESUME で継続。
-  次段: この 106 本で SmolVLA を fine-tune（`POLICY_BASE=lerobot/smolvla_base`, 30k step, RENAME_MAP）。
+- 2026-07-20: SmolVLA fine-tune 完了（g16 GPU1, 30k step, batch16, ~4h, **loss 0.026**）。
+  学習可能 100M / 全 450M。**push 済み → `abePclWaseda/so101-smolvla-color-select`**。
+  次段: 実機 eval（同一シーンで「赤」「青」を振って混同行列＋同一シーン反転デモ）。
