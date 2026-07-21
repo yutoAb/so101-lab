@@ -15,18 +15,38 @@ import time
 
 from lerobot.robots.so_follower import SOFollower, SO101FollowerConfig
 
-# 学習データ(cube-in-case-v2)の開始姿勢の平均（度）
-HOME = {
-    "shoulder_pan.pos": -11.9,
-    "shoulder_lift.pos": -103.8,
-    "elbow_flex.pos": 95.8,
-    "wrist_flex.pos": 54.2,
-    "wrist_roll.pos": -4.7,
-    "gripper.pos": 2.5,
+# 学習データの開始姿勢の平均（度）。タスクごとに違うので TASK_NAME で選ぶ。
+# 手首(flex/roll)や shoulder_pan が数度ズレると手首カメラの見え方が変わり、掴みが数cm外れる。
+# 別データセットを録ったら print_start_pose 相当（下記コメント参照）で測り直して追記する。
+POSES = {
+    # cube-in-case-v2: 全50エピソード開始姿勢の平均
+    "cube-in-case-v2": {
+        "shoulder_pan.pos": -11.9,
+        "shoulder_lift.pos": -103.8,
+        "elbow_flex.pos": 95.8,
+        "wrist_flex.pos": 54.2,
+        "wrist_roll.pos": -4.7,
+        "gripper.pos": 2.5,
+    },
+    # color-select: 全106エピソード(赤48/青58)開始姿勢の平均（2026-07-21 実測）
+    "color-select": {
+        "shoulder_pan.pos": -7.4,
+        "shoulder_lift.pos": -103.6,
+        "elbow_flex.pos": 96.2,
+        "wrist_flex.pos": 50.8,
+        "wrist_roll.pos": 0.5,
+        "gripper.pos": 2.4,
+    },
 }
+
+# TASK_NAME（_env.sh）で選択。未知タスクは cube-in-case-v2 にフォールバック。
+_TASK = os.environ.get("TASK_NAME", "")
+HOME = POSES.get(_TASK, POSES["cube-in-case-v2"])
 
 
 def main():
+    print(f"開始姿勢: TASK_NAME='{_TASK}' → "
+          f"{'cube-in-case-v2(既定)' if _TASK not in POSES else _TASK} のポーズを使用")
     cfg = SO101FollowerConfig(
         port=os.environ["FOLLOWER_PORT"],
         id=os.environ["FOLLOWER_ID"],
